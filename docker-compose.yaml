@@ -1,0 +1,9 @@
+version: "3"
+services:
+  uapi-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./build:/build
+      - ./uAPI:/uAPI
