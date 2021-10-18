@@ -1,0 +1,36 @@
+#!/bin/bash
+
+
+FILES=$(git diff --name-only --cached --diff-filter=ACMR)
+
+if [ "$FILES" == "" ]; then
+    exit 0
+fi
+
+FILES_TO_CHECK=""
+for FILE in $FILES
+do
+    echo "$FILE" | egrep -q ".py"
+    RETVAL=$?
+    if [ "$RETVAL" -eq "0" ]
+    then
+        echo $FILE
+        echo "Compiling..."
+        python3 -m compileall $FILE
+        if [ "$?" -eq "1" ];
+        then
+            echo "Compileall could not compile $FILE"
+            exit 1
+        fi
+
+        echo "Checking Format..."
+        black --check --diff --color $FILE
+        if [ "$?" -eq "1" ];
+        then
+            echo "Black did not accept formatting of $FILE"
+            exit 1
+        fi
+
+        echo ""
+    fi
+done
