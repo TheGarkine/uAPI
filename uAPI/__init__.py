@@ -2,7 +2,7 @@
 """
 
 # This also defines the order in which the documentation is generated
-__all__ = ['uAPI', 'RequestArgument', 'HTTPResponse', 'HTTPError']
+__all__ = ["uAPI", "RequestArgument", "HTTPResponse", "HTTPError"]
 
 from .application import uAPI
 from .http_error import HTTPError

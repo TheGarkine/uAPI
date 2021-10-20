@@ -7,3 +7,7 @@ services:
     volumes:
       - ./build:/build
       - ./uAPI:/uAPI
+  uapi-test:
+    build:
+      context: .
+      dockerfile: tests/testserver/Dockerfile

@@ -1,3 +1,7 @@
-build/
-
+build
+dist
 __pycache__
+
+MANIFEST
+sdist_upip.py
+*.egg-info

@@ -15,6 +15,7 @@ from .http_response import HTTPResponse
 from .request_argument import RequestArgument
 from .utils import _SWAGGER_UI_HTML, TYPE_LOOKUP, clean_query_string
 
+
 class uAPI:
     """uAPI class
     -----------------------
@@ -22,8 +23,14 @@ class uAPI:
 
     running = False
     """Whether or not the server is running. Setting this from true to false, stops the server but setting this from False to true without invoking run() does not start it."""
-    
-    def __init__(self, port: int = 80, title: str = "uAPI", description: str = "Built with uAPI", version: str = "1.0.0"):
+
+    def __init__(
+        self,
+        port: int = 80,
+        title: str = "uAPI",
+        description: str = "Built with uAPI",
+        version: str = "1.0.0",
+    ):
         """Constructor for a new uAPI. Predefines the routes /openapi.json and /docs.
 
         Args:
@@ -35,33 +42,28 @@ class uAPI:
         self.title = title
         self.version = version
         self.description = description
+        self.port = port
 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(('', port))
-        self.socket.listen(5)
+        self._socket = None
 
         self.routes = {
             "/docs": {
-                "GET": {
-                    "function": self._swagger_ui,
-                    "internal": True,
-                    "args": {}
-                }
+                "GET": {"function": self._swagger_ui, "internal": True, "args": {}}
             },
             "/openapi.json": {
                 "GET": {
                     "function": self.generate_openapi_definition,
                     "internal": True,
-                    "args": {}
+                    "args": {},
                 }
-            }
+            },
         }
 
         self._stopped = False
-    
+
     def endpoint(self, route: str, method: str, args={}, description="") -> Callable:
         """Meant to be used as a decorator around your function. Adds your function as an API endpoint on the given route and method.
-        
+
         If you have arguments make sure that those are added to the 'args' parameter, such that they can be given to your function later on.
 
         Args:
@@ -93,7 +95,7 @@ class uAPI:
                 "function": func,
                 "operationId": func.__name__,
                 "internal": False,
-                "args": args
+                "args": args,
             }
 
             def _wrapper(*args, **kwargs):
@@ -119,41 +121,41 @@ class uAPI:
                     method_dict[method.lower()] = {
                         "operationId": self.routes[route][method]["operationId"],
                         "description": self.routes[route][method]["description"],
-                        "summary": " ".join(self.routes[route][method]["operationId"].split("_")),
-                        "responses" :{
-                            "200": {
-                                "description": "success"
-                            }
-                        }
+                        "summary": " ".join(
+                            self.routes[route][method]["operationId"].split("_")
+                        ),
+                        "responses": {"200": {"description": "success"}},
                     }
                     if self.routes[route][method]["args"]:
                         request_body_props = {}
                         paramters = []
                         for arg in self.routes[route][method]["args"]:
-                            request_argument =  self.routes[route][method]["args"][arg]
+                            request_argument = self.routes[route][method]["args"][arg]
                             if request_argument.location == "requestBody":
                                 request_body_props[arg] = {
                                     "type": TYPE_LOOKUP[request_argument.type],
                                     "description": request_argument.description,
-                                    "required": str(request_argument.required).lower()
+                                    "required": str(request_argument.required).lower(),
                                 }
                             else:
-                                paramters.append({
-                                    "name": arg,
-                                    "in": request_argument.location,
-                                    "description": request_argument.description,
-                                    "required": request_argument.required
-                                })
+                                paramters.append(
+                                    {
+                                        "name": arg,
+                                        "in": request_argument.location,
+                                        "description": request_argument.description,
+                                        "required": request_argument.required,
+                                    }
+                                )
                         if paramters:
                             method_dict[method.lower()]["parameters"] = paramters
 
                         if request_body_props:
                             method_dict[method.lower()]["requestBody"] = {
-                                "content" : {
+                                "content": {
                                     "application/json": {
                                         "schema": {
-                                            "type" : "object",
-                                            "properties": request_body_props
+                                            "type": "object",
+                                            "properties": request_body_props,
                                         }
                                     }
                                 }
@@ -162,15 +164,14 @@ class uAPI:
             if len(method_dict) > 0:
                 paths[route] = method_dict
 
-
         openapi = {
             "openapi": "3.0.0",
             "info": {
                 "title": self.title,
                 "version": self.version,
-                "description": self.description
+                "description": self.description,
             },
-            "paths": paths
+            "paths": paths,
         }
 
         return openapi
@@ -182,7 +183,6 @@ class uAPI:
             HTTPResponse: [description]
         """
         return HTTPResponse(data=_SWAGGER_UI_HTML, content_type="text/html")
-
 
     async def _process_connection(self, connection: socket.socket):
         """Processes a request on a new connection.
@@ -205,7 +205,6 @@ class uAPI:
             else:
                 raise HTTPError(400, "Invalid URL format!")
 
-            
             print("{}\t: {} {}".format(time.time(), method, route))
 
             if not route in self.routes:
@@ -214,7 +213,6 @@ class uAPI:
             route = self.routes[route]
             if method not in route:
                 raise HTTPError(405)
-
 
             query_fragments = query.split("&")
             query_params = {}
@@ -237,59 +235,62 @@ class uAPI:
                     request_argument: RequestArgument = route[method]["args"][arg]
                     if request_argument.location == "requestBody":
                         if arg in parsed_body:
-                            if isinstance(parsed_body[arg],request_argument.type):
+                            if isinstance(parsed_body[arg], request_argument.type):
                                 args[arg] = parsed_body[arg]
-                                del(parsed_body[arg])
+                                del parsed_body[arg]
                             else:
                                 validationError[arg] = {
-                                    "error": "wrong type, expected {}, got {}".format(request_argument.type, type(parsed_body[arg])),
-                                    "location": "requestBody"
+                                    "error": "wrong type, expected {}, got {}".format(
+                                        request_argument.type, type(parsed_body[arg])
+                                    ),
+                                    "location": "requestBody",
                                 }
                         else:
                             if request_argument.required:
                                 validationError[arg] = {
                                     "error": "required but missing",
-                                    "location": "requestBody"
+                                    "location": "requestBody",
                                 }
 
                     if request_argument.location == "query":
                         if arg in query_params:
                             try:
                                 args[arg] = request_argument.type(query_params[arg])
-                                del(query_params[arg])
+                                del query_params[arg]
                             except Exception as e:
                                 validationError[arg] = {
-                                    "error": "wrong type, expected {},input: {}".format(request_argument.type, query_params[arg]),
-                                    "location": "requestBody"
+                                    "error": "wrong type, expected {},input: {}".format(
+                                        request_argument.type, query_params[arg]
+                                    ),
+                                    "location": "requestBody",
                                 }
-                                del(query_params[arg])
+                                del query_params[arg]
                         else:
                             if request_argument.required:
                                 validationError[arg] = {
                                     "error": "required but missing",
-                                    "location": "query"
+                                    "location": "query",
                                 }
                 if validationError:
-                    raise HTTPError(400,json.dumps(validationError))
-
+                    raise HTTPError(400, json.dumps(validationError))
 
             result = route[method]["function"](**args)
             # Wrap the result in an HTTPResponse if it is not already one
             if not isinstance(result, HTTPResponse):
                 result = HTTPResponse(data=result)
 
-            connection.sendall(result.to_HTTP())
+            connection.send(result.to_HTTP())
             connection.close()
-            return 
+            return
 
         except HTTPError as e:
-            connection.sendall(e.to_HTTP())
+            connection.send(e.to_HTTP())
             connection.close()
             return
         except Exception as e:
             error = HTTPError(500, str(e))
             print(e)
-            connection.sendall(error.to_HTTP())
+            connection.send(error.to_HTTP())
             connection.close()
 
     async def run(self) -> None:
@@ -298,18 +299,23 @@ class uAPI:
         Raises:
             Exception: If the server is already running..
         """
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        addr = socket.getaddrinfo("0.0.0.0", self.port)[0][-1]
+        self._socket.bind(addr)
+        self._socket.listen(5)
+
         if self.running:
             raise Exception("The uAPI server is already running!")
         self.running = True
         self._stopped = False
         # this allows other tasks to run in the background
-        self.socket.setblocking(False)
+        self._socket.setblocking(False)
         while self.running:
             try:
                 gc.collect()
-                conn, addr = self.socket.accept()
-                print('Got a connection from %s' % str(addr))
-                asyncio.create_task(self._process_conn(conn))
+                conn, addr = self._socket.accept()
+                print("Got a connection from %s" % str(addr))
+                asyncio.create_task(self._process_connection(conn))
                 await asyncio.sleep_ms(100)
             except:
                 # allow task change
@@ -317,8 +323,10 @@ class uAPI:
         self._stopped = False
 
     async def stop(self) -> None:
-        """Can be called as an blocking function that sets running to false and waits for the server to actually stop.
-        """
+        """Can be called as an blocking function that sets running to false and waits for the server to actually stop."""
         self.running = False
         while not self._stopped:
             await asyncio.sleep_ms(100)
+
+        self._socket.close()
+        self._socket = None

@@ -8,8 +8,28 @@ If you have any questions, it is recommended to check the [examples directory](/
 
 Generally there are two possibilities to use this framework in your project:
 
-- **prebuild (recommended):** You can go to the releases page and check for the latest .mpy file. You can simply add this file on your controller and it will be used just as the sourcecode itself.
-- **source code:** You can also add the entire `uAPI/` subdirectory on your controller and develop with it as with any other local module. This is only recommended if you want to experiment on something or contribute to the project.
+### prebuild
+
+You can go to the releases page and check for the latest .mpy file. You can simply add this file on your controller and it will be used just as the package itself. This is the most efficient version to use uAPI, since it is precompiled bytecode.
+
+### upip
+
+If your use-case allows it you can use uAPI with upip (only when the device has internet connection).
+
+```python3
+import upip
+upip.install("micropython-uAPI")
+```
+
+For your local port of micropython you can also call:
+
+```
+micropython -m upip install micropython-uAPI
+```
+
+### with code
+
+You can also add the entire `uAPI/` subdirectory on your controller and develop with it as with any other local module. This is only recommended if you want to experiment on something or contribute to the project.
 
 ## Features
 
@@ -35,7 +55,7 @@ mpy-cross -O[3] ./build/uAPI.py
 ### Docker(-Compose)
 To build using the docker compose simply use, (don't forget to add `--build` if running the first time):
 ```bash
-docker-compose up
+docker-compose up uapi-build
 ```
 
 If you do not want to run with docker-compose but still want to use docker, you can do so by mounting the directories into the image on run:
@@ -48,3 +68,33 @@ docker run \
 ```
 
 ## Contributing
+
+Thank you for your interest in contributing to this project!
+
+### Compiling and Testing
+To validate whether your changes would compile you can call the [micropython unix port](https://github.com/micropython/micropython#the-unix-version) from the offical repository.
+
+You can check your compile by:
+```
+micropython -X compile-only <your changed file>
+```
+
+#### TODO TESTING
+
+### Formatting
+We use [black](https://pypi.org/project/black/) to check our formatting, to use it you can simply install it by (you may need an sudo install to get it as an recognized command in your shell):
+```
+(sudo) pip3 install black
+```
+
+You can simply use it as `black .` to automatically format the whole project or with the `--check --diff` flags to see if black would require you to do any changes without actually writing on your files.
+
+
+### Hooks
+You should setup a pre-commit hook on your machine, that handles the format and syntax checks automatically and helps you to keep your worktree clean. Note that not well formatted code (and of course unfunctional one) will not be accepted to the codebase.
+```
+git config --local core.hooksPath ./.githooks/
+```
+
+## License
+This project is licensed under the terms of the MIT license.

@@ -2,10 +2,16 @@ import json
 
 from .utils import HTTP_STATUS_CODES
 
+
 class HTTPResponse:
-    """A basic HTTP Response, allows to set custom status_codes and content_types for special requests.
-    """
-    def __init__(self, data: object=None, status_code: int=200, content_type: str="application/json"):
+    """A basic HTTP Response, allows to set custom status_codes and content_types for special requests."""
+
+    def __init__(
+        self,
+        data: object = None,
+        status_code: int = 200,
+        content_type: str = "application/json",
+    ):
         """Constructor for a HTTP Response.
 
         Args:
@@ -32,16 +38,18 @@ class HTTPResponse:
             if self.content_type is "application/json":
                 data = json.dumps(self.data)
             else:
-                data = str(self.data) 
+                data = str(self.data)
         else:
             data = ""
 
-        http = 'HTTP/1.1 {} {}\r\n'.format(self.status_code, HTTP_STATUS_CODES[self.status_code])
-        http += 'Content-Type: {}\r\n'.format(self.content_type)
+        http = "HTTP/1.1 {} {}\r\n".format(
+            self.status_code, HTTP_STATUS_CODES[self.status_code]
+        )
+        http += "Content-Type: {}\r\n".format(self.content_type)
 
         if data:
             http += "Content-Length: {}\r\n".format(len(data))
-        http += 'Connection: close\r\n\r\n'
+        http += "Connection: close\r\n\r\n"
         http += data
 
         return http
