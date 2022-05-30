@@ -18,16 +18,17 @@ if [[ ! `git status --porcelain Changelog.md` ]]; then
     exit 1
 fi
 
+# CREATE A GITHUB RELEASE
 echo $1 > VERSION
-
 git add VERSION Changelog.md
 git commit -m "Release Version $1"
 git tag $1
 git push
-
 gh release create -F Changelog.md $1 build/uAPI.mpy
 
-# releases pypi package
+# RELEASE PYPI PACKAGE
+wget https://raw.githubusercontent.com/pfalcon/pycopy-lib/master/sdist_upip.py
+# delete old builds
 rm -rf dist
 python3 setup.py sdist
 twine upload dist/*.tar.gz

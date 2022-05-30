@@ -2,15 +2,17 @@
 
 This project is meant to make programming APIs on micropython supported microcontrollers easier. The general design is inspired by [tiangolo/fastapi](https://github.com/tiangolo/fastapi), one of my favorite python frameworks which I personally use a lot.
 
-If you have any questions, it is recommended to check the [examples directory](/examples) first.
+The project is pure python, the only external dependencies are on uasyncio, json
+
+If you have any questions, it is recommended to check the [docs](uapi.readthedocs.io) and [examples directory](/examples) first.
 
 ## Usage
 
-Generally there are two possibilities to use this framework in your project:
+Generally there are three possibilities to use this framework in your project:
 
 ### prebuild
 
-You can go to the releases page and check for the latest .mpy file. You can simply add this file on your controller and it will be used just as the package itself. This is the most efficient version to use uAPI, since it is precompiled bytecode.
+You can go to the [releases page](https://github.com/TheGarkine/uAPI/releases) and check for the latest .mpy file. You can simply add this file on your controller and it will be used just as the package itself. This is the most efficient version to use uAPI, since it is precompiled bytecode.
 
 ### upip
 
@@ -21,7 +23,7 @@ import upip
 upip.install("micropython-uAPI")
 ```
 
-For your local port of micropython you can also call:
+For your local (e.g. unix) port of micropython you can also call:
 
 ```
 micropython -m upip install micropython-uAPI
@@ -53,7 +55,8 @@ mpy-cross -O[3] ./build/uAPI.py
 `-O[3]` will indicate mpy-cross to use the highest level of compression, read more about these in the mpy-cross documentation.
 
 ### Docker(-Compose)
-To build using the docker compose simply use, (don't forget to add `--build` if running the first time):
+
+To build using the docker compose, simply use (don't forget to add `--build` if running the first time):
 ```bash
 docker-compose up uapi-build
 ```

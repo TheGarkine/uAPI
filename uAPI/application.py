@@ -191,6 +191,7 @@ class uAPI:
             connection (socket.socket): The connection to process communication on.
         """
         try:
+            connection.settimeout(1)
             request = connection.recv(8 * 1024).decode("ASCII")
 
             lines = request.split("\r\n")
@@ -281,12 +282,10 @@ class uAPI:
 
             connection.send(result.to_HTTP())
             connection.close()
-            return
 
         except HTTPError as e:
             connection.send(e.to_HTTP())
             connection.close()
-            return
         except Exception as e:
             error = HTTPError(500, str(e))
             print(e)
@@ -316,10 +315,10 @@ class uAPI:
                 conn, addr = self._socket.accept()
                 print("Got a connection from %s" % str(addr))
                 asyncio.create_task(self._process_connection(conn))
-                await asyncio.sleep_ms(100)
+                await asyncio.sleep_ms(0)
             except:
                 # allow task change
-                await asyncio.sleep_ms(100)
+                await asyncio.sleep_ms(10)
         self._stopped = False
 
     async def stop(self) -> None:
